@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- $Revision: 37177 $ -->
+<!-- $Revision: 37472 $ -->
 <appendix id="skin">
 <title><application>MPlayer</application> skin format</title>
 
@@ -905,7 +905,7 @@ menu entries.
 <varlistentry>
   <term><emphasis role="bold">evLoad</emphasis></term>
   <listitem><para>
-  Load a file (by opening a file browser window, where you can choose a file).
+  Load a file (by opening a file selector dialog box, where you can choose a file).
   </para></listitem>
 </varlistentry>
 
