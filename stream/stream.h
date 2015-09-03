@@ -55,6 +55,8 @@
 #define STREAM_BUFFER_SIZE (2*STREAM_BUFFER_MIN) // must be at least 2*STREAM_BUFFER_MIN
 #define STREAM_MAX_SECTOR_SIZE (8*1024)
 
+extern int stream_buffer_size;
+
 #define VCD_SECTOR_SIZE 2352
 #define VCD_SECTOR_OFFS 24
 #define VCD_SECTOR_DATA 2324
@@ -160,6 +162,8 @@ typedef struct stream {
   int (*control)(struct stream *s,int cmd,void* arg);
   // Close
   void (*close)(struct stream *s);
+  // Size - returns total size of the stream
+  off_t (*size)(struct stream *s, off_t* availSize);
 
   int fd;   // file descriptor, see man open(2)
   int type; // see STREAMTYPE_*
@@ -174,12 +178,18 @@ typedef struct stream {
   void* cache_data;
   void* priv; // used for DVD, TV, RTSP etc
   char* url;  // strdup() of filename/url
+
+  int activeFileFlag;
+  off_t circularFileSize;
+
 #ifdef CONFIG_NETWORKING
   streaming_ctrl_t *streaming_ctrl;
 #endif
   unsigned char buffer[STREAM_BUFFER_SIZE>STREAM_MAX_SECTOR_SIZE?STREAM_BUFFER_SIZE:STREAM_MAX_SECTOR_SIZE];
   FILE *capture_file;
 } stream_t;
+
+
 
 #ifdef CONFIG_NETWORKING
 #include "network.h"
@@ -190,6 +200,47 @@ int stream_seek_long(stream_t *s, int64_t pos);
 void stream_capture_do(stream_t *s);
 
 #ifdef CONFIG_STREAM_CACHE
+
+
+#ifndef FORKED_CACHE
+#define FORKED_CACHE 0
+#endif
+
+typedef struct {
+  // constats:
+  unsigned char *buffer;      // base pointer of the allocated buffer memory
+  int64_t buffer_size; // size of the allocated buffer memory
+  int sector_size; // size of a single sector (2048/2324)
+  int64_t back_size;   // we should keep back_size amount of old bytes for backward seek
+  int64_t fill_limit;  // we should fill buffer only if space>=fill_limit
+  int64_t seek_limit;  // keep filling cache if distance is less that seek limit
+#if FORKED_CACHE
+  pid_t ppid; // parent PID to detect killed parent
+#endif
+  // filler's pointers:
+  int eof;
+  int64_t min_filepos; // buffer contain only a part of the file, from min-max pos
+  int64_t max_filepos;
+  int64_t offset;      // filepos <-> bufferpos  offset value (filepos of the buffer's first byte)
+  // reader's pointers:
+  int64_t read_filepos;
+  // commands/locking:
+//  int seek_lock;   // 1 if we will seek/reset buffer, 2 if we are ready for cmd
+//  int fifo_flag;  // 1 if we should use FIFO to notice cache about buffer reads.
+  // callback
+  stream_t* stream;
+  stream_t* streamOriginal;
+  int killCacheThread;
+  volatile int control;
+  volatile uint64_t control_uint_arg;
+  volatile double control_double_arg;
+  volatile char *control_char_p_arg;
+  volatile struct stream_lang_req control_lang_arg;
+  volatile int control_res;
+  volatile double stream_time_length;
+  volatile double stream_time_pos;
+} cache_vars_t;
+
 int stream_enable_cache(stream_t *stream,int64_t size,int64_t min,int64_t prefill);
 int cache_stream_fill_buffer(stream_t *s);
 int cache_stream_seek_long(stream_t *s,int64_t pos);

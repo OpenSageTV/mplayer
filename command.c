@@ -686,28 +686,66 @@ static int mp_property_volume(m_option_t *prop, int action, void *arg,
     if (mpctx->edl_muted)
         return M_PROPERTY_DISABLED;
     mpctx->user_muted = 0;
+	float currVolume;
 
     switch (action) {
     case M_PROPERTY_SET:
         if (!arg)
             return M_PROPERTY_ERROR;
         M_PROPERTY_CLAMP(prop, *(float *) arg);
-        mixer_setvolume(&mpctx->mixer, *(float *) arg, *(float *) arg);
-        return M_PROPERTY_OK;
+        if (mpctx->mixer.muted)
+        {
+        	mpctx->mixer.last_l = mpctx->mixer.last_r = *(float*)arg;
+        }
+        else
+            mixer_setvolume(&mpctx->mixer, *(float *) arg, *(float *) arg);
+	    currVolume = *(float*)arg;
+        break;
     case M_PROPERTY_STEP_UP:
+		if (mpctx->mixer.muted)
+		{
+			mpctx->mixer.last_l += mpctx->mixer.volstep;
+			mpctx->mixer.last_r += mpctx->mixer.volstep;
+			if (mpctx->mixer.last_l > 100)
+			  mpctx->mixer.last_l = 100;
+			if (mpctx->mixer.last_r > 100)
+			  mpctx->mixer.last_r = 100;
+			currVolume = mpctx->mixer.last_l;
+		}
+		else
+		{
         if (arg && *(float *) arg <= 0)
             mixer_decvolume(&mpctx->mixer);
         else
             mixer_incvolume(&mpctx->mixer);
-        return M_PROPERTY_OK;
+			mixer_getbothvolume(&mpctx->mixer, &currVolume);
+		}
+        break;
     case M_PROPERTY_STEP_DOWN:
+		if (mpctx->mixer.muted)
+		{
+			mpctx->mixer.last_l -= mpctx->mixer.volstep;
+			mpctx->mixer.last_r -= mpctx->mixer.volstep;
+			if (mpctx->mixer.last_l < 0)
+			  mpctx->mixer.last_l = 0;
+			if (mpctx->mixer.last_r < 0)
+			  mpctx->mixer.last_r = 0;
+			currVolume = mpctx->mixer.last_l;
+		}
+		else
+		{
         if (arg && *(float *) arg <= 0)
             mixer_incvolume(&mpctx->mixer);
         else
             mixer_decvolume(&mpctx->mixer);
-        return M_PROPERTY_OK;
-    }
+ 			mixer_getbothvolume(&mpctx->mixer, &currVolume);
+		}
+		break;
+	default:
     return M_PROPERTY_NOT_IMPLEMENTED;
+    }
+	mp_msg(MSGT_GLOBAL,MSGL_INFO,"VOLUME=%f\n", currVolume);
+	return M_PROPERTY_OK;
 }
 
 /// Mute (RW)
@@ -727,6 +765,7 @@ static int mp_property_mute(m_option_t *prop, int action, void *arg,
         if ((!!*(int *) arg) != mpctx->mixer.muted)
             mixer_mute(&mpctx->mixer);
         mpctx->user_muted = mpctx->mixer.muted;
+		mp_msg(MSGT_GLOBAL,MSGL_INFO,"MUTED=%d\n", mpctx->mixer.muted);
         return M_PROPERTY_OK;
     case M_PROPERTY_STEP_UP:
     case M_PROPERTY_STEP_DOWN:
@@ -2915,6 +2954,24 @@ int run_command(MPContext *mpctx, mp_cmd_t *cmd)
             }
             break;
 
+    case MP_CMD_LOADFILE2 : {
+printf("loadfile2 received arg1=%d arg2=%d\n", cmd->args[1].v.i, cmd->args[2].v.i);
+      play_tree_t* e = play_tree_new();
+      play_tree_add_file(e,cmd->args[0].v.s);
+
+      // Go back to the start point
+      while(play_tree_iter_up_step(mpctx->playtree_iter,0,1) != PLAY_TREE_ITER_END)
+	/* NOP */;
+      play_tree_free_list(mpctx->playtree->child,1);
+      play_tree_set_child(mpctx->playtree,e);
+      play_tree_iter_step(mpctx->playtree_iter,0,0);
+
+	  active_file = cmd->args[1].v.i;
+	  circular_file_size = cmd->args[2].v.i;
+
+      mpctx->eof = PT_NEXT_SRC;
+      brk_cmd = 1;
+    } break;
         case MP_CMD_LOADLIST:{
                 play_tree_t *e = parse_playlist_file(cmd->args[0].v.s);
                 if (!e)
@@ -3355,6 +3412,33 @@ int run_command(MPContext *mpctx, mp_cmd_t *cmd)
                    demuxer_get_percent_pos(mpctx->demuxer));
             break;
 
+	case MP_CMD_INACTIVE_FILE : {
+		mpctx->stream->activeFileFlag = 0;
+		if (mpctx->stream->cache_data)
+		{
+			cache_vars_t* sc = mpctx->stream->cache_data;
+			sc->stream->activeFileFlag = 0;
+			sc->streamOriginal->activeFileFlag = 0;
+		}				
+	} break;
+	case MP_CMD_ACTIVE_FILE : {
+printf("ACTIVE stream=0x%x\n", (int)mpctx->stream);
+		mpctx->stream->activeFileFlag = 1;
+		if (mpctx->stream->cache_data)
+		{
+			cache_vars_t* sc = mpctx->stream->cache_data;
+			sc->stream->activeFileFlag = 1;
+			sc->streamOriginal->activeFileFlag = 1;
+		}				
+	} break;
+	case MP_CMD_VO_RECTANGLES : {
+		if (vo_config_count && mpctx->video_out)
+		{
+			int rectData[8] = { cmd->args[0].v.i, cmd->args[1].v.i, cmd->args[2].v.i, cmd->args[3].v.i, 
+				cmd->args[4].v.i, cmd->args[5].v.i, cmd->args[6].v.i, cmd->args[7].v.i };
+			mpctx->video_out->control(VOCTRL_RECTANGLES, rectData);
+		}
+	} break;
         case MP_CMD_GET_TIME_POS:{
                 float pos = 0;
                 if (sh_video)

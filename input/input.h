@@ -165,6 +165,15 @@ typedef enum {
   /// GUI command
   MP_CMD_GUI,
 
+  // SAGETV
+  MP_CMD_INACTIVE_FILE,
+  MP_CMD_LOADFILE2, 
+  MP_CMD_VO_RECTANGLES, 
+  MP_CMD_ACTIVE_FILE 
+
+
+
+
 } mp_command_type;
 
 // The arg types

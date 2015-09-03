@@ -101,7 +101,26 @@ static int64_t mp_seek(void *opaque, int64_t pos, int whence) {
     if(whence == SEEK_CUR)
         pos +=stream_tell(stream);
     else if(whence == SEEK_END && stream->end_pos > 0)
+	{
+		// Narflex: Use our size calculation technique for FLV streaming
+		if (stream->size)
+		{
+			off_t fileSize = 0;
+			stream->size(stream, &fileSize);
+			if (stream->activeFileFlag)
+			{
+				if (fileSize <= 300000)
+					fileSize = fileSize/2;
+				else
+					fileSize = fileSize - 250000;
+			}
+			pos += fileSize;
+		}
+		else
+		{
         pos += stream->end_pos;
+		}
+	}
     else if(whence == SEEK_SET)
         pos += stream->start_pos;
     else if(whence == AVSEEK_SIZE && stream->end_pos > 0) {
@@ -571,6 +590,9 @@ static demuxer_t* demux_open_lavf(demuxer_t *demuxer){
             priv->pb->seekable = 0;
         avfc->pb = priv->pb;
     }
+
+//	if (demuxer->stream->activeFileFlag)
+//		((URLContext*)(priv->pb.opaque))->flags |= URL_ACTIVEFILE;
 
     if(avformat_open_input(&avfc, mp_filename, priv->avif, &opts)<0){
         mp_msg(MSGT_HEADER,MSGL_ERR,"LAVF_header: av_open_input_stream() failed\n");

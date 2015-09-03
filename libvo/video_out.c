@@ -86,7 +86,7 @@ float vo_fps=0;
 char *vo_subdevice = NULL;
 int vo_directrendering=0;
 
-int vo_colorkey = 0x0000ff00; // default colorkey is green
+int vo_colorkey = 0x00000801; // default colorkey is NO LONGER green
                               // (0xff000000 means that colorkey has been disabled)
 
 // name to be used instead of the vo's default
@@ -97,6 +97,17 @@ char *vo_wintitle;
 //
 // Externally visible list of all vo drivers
 //
+
+#ifdef WIN32
+extern vo_functions_t video_out_stvwin;
+#else
+#ifdef MACOSX
+extern vo_functions_t video_out_macstv;
+#else
+extern vo_functions_t video_out_stv;
+#endif
+#endif
+
 extern const vo_functions_t video_out_mga;
 extern const vo_functions_t video_out_xmga;
 extern const vo_functions_t video_out_x11;
@@ -192,6 +203,17 @@ const vo_functions_t* const video_out_drivers[] =
 #ifdef CONFIG_WII
         &video_out_wii,
 #endif
+
+#ifdef WIN32
+	&video_out_stvwin,
+#else
+#ifdef MACOSX
+	&video_out_macstv,
+#else
+	&video_out_stv,
+#endif
+#endif
+
 #ifdef CONFIG_3DFX
         &video_out_3dfx,
 #endif

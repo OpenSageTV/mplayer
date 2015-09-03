@@ -85,8 +85,14 @@ extern const stream_info_t stream_info_ifo;
 extern const stream_info_t stream_info_dvd;
 extern const stream_info_t stream_info_bluray;
 
+#ifdef STREAM_SAGETV
+extern stream_info_t stream_info_sagetv;
+#endif
+
 static const stream_info_t* const auto_open_streams[] = {
   &stream_info_bd,
+
+
 #ifdef CONFIG_VCD
   &stream_info_vcd,
 #endif
@@ -124,6 +130,9 @@ static const stream_info_t* const auto_open_streams[] = {
 #endif
 #ifdef CONFIG_FTP
   &stream_info_ftp,
+#endif
+#ifdef STREAM_SAGETV
+  &stream_info_sagetv,
 #endif
 #ifdef CONFIG_VSTREAM
   &stream_info_vstream,

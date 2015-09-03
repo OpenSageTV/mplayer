@@ -68,38 +68,7 @@ static void *ThreadProc(void *s);
 #include "cache2.h"
 #include "mp_global.h"
 
-typedef struct {
-  // constats:
-  unsigned char *buffer;      // base pointer of the allocated buffer memory
-  int64_t buffer_size; // size of the allocated buffer memory
-  int sector_size; // size of a single sector (2048/2324)
-  int64_t back_size;   // we should keep back_size amount of old bytes for backward seek
-  int64_t fill_limit;  // we should fill buffer only if space>=fill_limit
-  int64_t seek_limit;  // keep filling cache if distance is less that seek limit
-#if FORKED_CACHE
-  pid_t ppid; // parent PID to detect killed parent
-#endif
-  // filler's pointers:
-  int eof;
-  int64_t min_filepos; // buffer contain only a part of the file, from min-max pos
-  int64_t max_filepos;
-  int64_t offset;      // filepos <-> bufferpos  offset value (filepos of the buffer's first byte)
-  // reader's pointers:
-  int64_t read_filepos;
-  // commands/locking:
-//  int seek_lock;   // 1 if we will seek/reset buffer, 2 if we are ready for cmd
-//  int fifo_flag;  // 1 if we should use FIFO to notice cache about buffer reads.
-  // callback
-  stream_t* stream;
-  volatile int control;
-  volatile uint64_t control_uint_arg;
-  volatile double control_double_arg;
-  volatile char *control_char_p_arg;
-  volatile struct stream_lang_req control_lang_arg;
-  volatile int control_res;
-  volatile double stream_time_length;
-  volatile double stream_time_pos;
-} cache_vars_t;
+
 
 static void cache_wakeup(stream_t *s)
 {
@@ -189,6 +158,8 @@ static int cache_fill(cache_vars_t *s)
       // issues with e.g. mov or badly interleaved files
       if(read<s->min_filepos || read>=s->max_filepos+s->seek_limit)
       {
+		s->min_filepos=s->max_filepos=read; // drop cache content :(
+		s->stream->activeFileFlag = s->streamOriginal->activeFileFlag;
         cache_flush(s);
         if(s->stream->eof) stream_reset(s->stream);
         stream_seek_internal(s->stream,read);
@@ -252,6 +223,7 @@ static int cache_fill(cache_vars_t *s)
   } else
   len = stream_read_internal(s->stream, &s->buffer[pos], space);
   s->eof= !len;
+  s->stream->activeFileFlag = s->streamOriginal->activeFileFlag;
 
   s->max_filepos+=len;
   if(pos+len>=s->buffer_size){
