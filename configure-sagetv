@@ -1,0 +1,5 @@
+#!/bin/sh
+
+EXTRA_CFLAGS="-fno-common -DMINGW_MEMALIGN=1" ./configure --host-cc=gcc --enable-runtime-cpudetection --disable-mencoder --disable-gl --disable-langinfo --disable-tv --disable-dvdread --disable-menu --enable-pthreads --disable-debug --disable-liba52 --disable-freetype --disable-fontconfig --enable-stv --enable-stream-sagetv --disable-ivtv --disable-x264 --extra-libs=-lpthread --enable-debug || { echo "Build failed, exiting."; }
+
+
