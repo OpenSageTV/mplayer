@@ -349,6 +349,7 @@ int init_audio_filters(sh_audio_t *sh_audio, int in_samplerate,
 
     // filter config:
     memcpy(&afs->cfg, &af_cfg, sizeof(af_cfg_t));
+  afs->chan_map = sh_audio->chan_map;
 
     mp_msg(MSGT_DECAUDIO, MSGL_V,
            "Building audio filter chain for %dHz/%dch/%s -> %dHz/%dch/%s...\n",

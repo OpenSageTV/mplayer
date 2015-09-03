@@ -859,6 +859,9 @@ ass_internal=auto
 _rpath=no
 _asmalign_pot=auto
 _stream_cache=yes
+_stv=no
+_stream_sagetv=no
+
 _priority=no
 def_dos_paths="#define HAVE_DOS_PATHS 0"
 def_stream_cache="#define CONFIG_STREAM_CACHE 1"
@@ -1056,6 +1059,10 @@ for ac_option do
   --disable-gif)        _gif=no         ;;
   --enable-gl)          _gl=yes         ;;
   --disable-gl)         _gl=no          ;;
+  --enable-stv)		_stv=yes		;;
+  --disable-stv)		_stv=no		;;
+  --enable-stream-sagetv)	_stream_sagetv=yes	;;
+  --disable-stream-sagetv)	_stream_sagetv=no	;;
   --enable-matrixview)  matrixview=yes  ;;
   --disable-matrixview) matrixview=no   ;;
   --enable-ggi)         _ggi=yes        ;;
@@ -7231,6 +7238,28 @@ else
 fi
 echores "$crystalhd"
 
+echocheck "stv"
+if test "$_stv" != no ; then
+        _def_eavios='#define HAVE_STV 1'
+	if win32 ; then
+		_vosrc="$_vosrc vo_stvwin.c"
+		_voobj="$_voobj vo_stvwin.o"
+	elif darwin ; then
+		_vosrc="$_vosrc vo_macstv.c vo_macstv_user.c"
+		_voobj="$_voobj vo_macstv.o vo_macstv_user.o"
+	else
+		_vosrc="$_vosrc vo_stv.c"
+		_voobj="$_voobj vo_stv.o"
+	fi
+        _vomodules="stv $_vomodules"
+else
+        _def_eavios='#undef HAVE_STV'
+        _novomodules="stv $_novomodules"
+	_vosrc="$_vosrc"
+	_voobj="$_voobj"
+fi
+echores "$_stv"
+
 echocheck "Xvid"
 if test "$_xvid" = auto ; then
   _xvid=no
@@ -7745,6 +7774,16 @@ else
   def_ftp='#undef CONFIG_FTP'
 fi
 echores "$_ftp"
+
+echocheck "stream SageTV"
+if test "$_stream_sagetv" != no ; then
+  _def_stream_sagetv='#define STREAM_SAGETV 1'
+  inputmodules="stream_sagetv $_inputmodules"
+else
+  noinputmodules="stream_sagetv $_noinputmodules"
+  _def_stream_sagetv='#undef STREAM_SAGETV'
+fi
+echores "$_stream_sagetv"
 
 echocheck "vstream client"
 if test "$_vstream" = auto ; then
@@ -9006,6 +9045,8 @@ $def_networking
 $def_smb
 $def_vstream
 
+/* enable SageTV streaming support */
+$_def_stream_sagetv
 
 /* libvo options */
 $def_3dfx

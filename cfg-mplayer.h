@@ -42,6 +42,9 @@ const m_option_t vd_conf[]={
     {NULL, NULL, 0, 0, 0, 0, NULL}
 };
 
+extern int load_muted;
+extern int stream_buffer_size;
+
 #ifdef CONFIG_TV
 const m_option_t tvscan_conf[]={
     {"autostart", &stream_tv_defaults.scan, CONF_TYPE_FLAG, 0, 0, 1, NULL},
@@ -338,6 +341,14 @@ const m_option_t mplayer_opts[]={
     {"noterm-osd", &term_osd, CONF_TYPE_FLAG, 0, 1, 0, NULL},
     {"term-osd-esc", &term_osd_esc, CONF_TYPE_STRING, 0, 0, 1, NULL},
     {"playing-msg", &playing_msg, CONF_TYPE_STRING, 0, 0, 0, NULL},
+
+	// Timeshifting controls
+	{"activefile", &active_file, CONF_TYPE_FLAG, 0, 0, 1, NULL},
+	{"circularfilesize", &circular_file_size, CONF_TYPE_INT, 0, 0, 0, NULL},
+	{"stream-buffer-size", &stream_buffer_size, CONF_TYPE_INT, 0, 0, 0, NULL},
+
+	// Open the player in a muted state
+	{"loadmuted", &load_muted, CONF_TYPE_FLAG, 0, 0, 1, NULL},
 
     {"slave", &slave_mode, CONF_TYPE_FLAG,CONF_GLOBAL , 0, 1, NULL},
     {"idle", &player_idle_mode, CONF_TYPE_FLAG,CONF_GLOBAL , 0, 1, NULL},

@@ -144,6 +144,10 @@ static const mp_cmd_t mp_cmds[] = {
   { MP_CMD_SWITCH_AUDIO, "switch_audio", 0, { { MP_CMD_ARG_INT,{-1} }, {-1,{0}} } },
   { MP_CMD_SWITCH_ANGLE, "switch_angle", 0, { { MP_CMD_ARG_INT,{-1} }, {-1,{0}} } },
   { MP_CMD_SWITCH_TITLE, "switch_title", 0, { { MP_CMD_ARG_INT,{-1} }, {-1,{0}} } },
+  { MP_CMD_INACTIVE_FILE, "inactive_file", 0, { {-1,{0}} } },
+  { MP_CMD_ACTIVE_FILE, "active_file", 0, { {-1,{0}} } },
+  { MP_CMD_VO_RECTANGLES, "video_out_rectangles", 8, { {MP_CMD_ARG_INT,{0}},{MP_CMD_ARG_INT,{0}},{MP_CMD_ARG_INT,{0}},{MP_CMD_ARG_INT,{0}},
+	{MP_CMD_ARG_INT,{0}},{MP_CMD_ARG_INT,{0}},{MP_CMD_ARG_INT,{0}},{MP_CMD_ARG_INT,{0}}}},
 #ifdef CONFIG_TV
   { MP_CMD_TV_START_SCAN, "tv_start_scan", 0,  { {-1,{0}} }},
   { MP_CMD_TV_STEP_CHANNEL, "tv_step_channel", 1,  { { MP_CMD_ARG_INT ,{0}}, {-1,{0}} }},
@@ -174,6 +178,7 @@ static const mp_cmd_t mp_cmds[] = {
   { MP_CMD_SWITCH_VSYNC, "switch_vsync", 0, { {MP_CMD_ARG_INT,{0}}, {-1,{0}} } },
   { MP_CMD_LOADFILE, "loadfile", 1, { {MP_CMD_ARG_STRING, {0}}, {MP_CMD_ARG_INT,{0}}, {-1,{0}} } },
   { MP_CMD_LOADLIST, "loadlist", 1, { {MP_CMD_ARG_STRING, {0}}, {MP_CMD_ARG_INT,{0}}, {-1,{0}} } },
+  { MP_CMD_LOADFILE2, "loadfile2", 3, { {MP_CMD_ARG_STRING, {0}}, {MP_CMD_ARG_INT,{0}}, {MP_CMD_ARG_INT,{0}}, {-1,{0}} } },
   { MP_CMD_RUN, "run", 1, { {MP_CMD_ARG_STRING,{0}}, {-1,{0}} } },
   { MP_CMD_CAPTURING, "capturing", 0, { {-1,{0}} } },
   { MP_CMD_VF_CHANGE_RECTANGLE, "change_rectangle", 2, { {MP_CMD_ARG_INT,{0}}, {MP_CMD_ARG_INT,{0}}, {-1,{0}}}},
