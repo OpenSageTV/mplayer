@@ -176,6 +176,23 @@ static int init(sh_audio_t *sh)
     // 8 channels is aac channel order #7.
     sh->channels = faac_channels == 7 ? 8 : faac_channels;
     if (audio_output_channels <= 2) sh->channels = faac_channels > 1 ? 2 : 1;
+
+    /* re-map channels */
+    switch (sh->channels) {
+      default:
+      case 1: /* no action needed */
+      case 2: /* no action needed */
+      case 3: /* no suitable default behavior? */
+      case 4: /* no suitable default behavior? */
+        break;
+      case 5: /* mplayer treats this like 6-channel */
+      case 6:
+        sh->chan_map = af_set_channel_map(6, "04" "10" "21" "32" "43" "55");
+        break;
+      case 7: /* not supported by mplayer? */
+        break;
+    }
+
     sh->samplerate = faac_samplerate;
     sh->samplesize=2;
     //sh->o_bps = sh->samplesize*faac_channels*faac_samplerate;

@@ -162,6 +162,7 @@ SRCS_COMMON-$(NETWORKING)            += stream/stream_netstream.c       \
                                         stream/tcp.c                    \
                                         stream/stream_rtp.c             \
                                         stream/stream_udp.c             \
+                                        stream/stream_sagetv.c			\
                                         stream/librtsp/rtsp.c           \
                                         stream/realrtsp/asmrp.c         \
                                         stream/realrtsp/real.c          \
@@ -611,6 +612,7 @@ SRCS_MPLAYER = command.c                \
                libao2/audio_out.c       \
                libvo/aspect.c           \
                libvo/geometry.c         \
+               libvo/vo_stv.c			\
                libvo/video_out.c        \
                libvo/vo_mpegpes.c       \
                libvo/vo_null.c          \

@@ -29,6 +29,10 @@ extern char **audio_driver_list;
 extern int osd_level;
 extern unsigned int osd_visible;
 extern int autosync;
+
+extern int active_file;
+extern long circular_file_size;
+
 extern int frame_dropping;
 extern int slave_mode;
 extern int player_idle_mode;

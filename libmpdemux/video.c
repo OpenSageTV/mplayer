@@ -121,6 +121,7 @@ switch(video_codec){
   break;
  }
  case VIDEO_MPEG4: {
+	 if (sh_video->fps) return 1; // we've already done this calculation
    int pos = 0, vop_cnt=0, units[3];
    videobuf_len=0; videobuf_code_len=0;
    mp_msg(MSGT_DECVIDEO,MSGL_V,"Searching for Video Object Start code... ");
@@ -157,7 +158,9 @@ switch(video_codec){
      return 0;
    }
    mp4_header_process_vol(&picture, &(videobuffer[pos]));
-   mp_msg(MSGT_DECVIDEO,MSGL_V,"OK! FPS SEEMS TO BE %.3f\nSearching for Video Object Plane Start code... ", sh_video->fps);
+   mp_msg(MSGT_DECVIDEO,MSGL_V,"OK! FPS SEEMS TO BE %.3f\nSearching for Video Object Plane Start code... ", sh_video->fps);fflush(stdout);
+   sh_video->disp_w=picture.display_picture_width;
+   sh_video->disp_h=picture.display_picture_height;
  mp4_init:
    while(1){
       int i=sync_video_packet(d_video);
@@ -297,6 +300,14 @@ mpeg_header_parser:
    while(1){
       int i=sync_video_packet(d_video);
       if(i==0x1B3) break; // found it!
+	  if (i == 0x1B0 || i == 0x1B6)
+	  {
+		  // It's an MPEG4 video stream and we guessed it as an MPEG1/2 video stream so change that
+		  // to be MPEG4 - Narflex, 1/18/06
+		  mp_msg(MSGT_DECVIDEO,MSGL_ERR,"Trying to parse MPEG1/2 video stream but MPEG4 start codes were detected. Switching to MPEG4 video format.\n");
+		  sh_video->format = 0x10000004;
+		  return video_read_properties(sh_video);
+	  }
       if(!i || !skip_video_packet(d_video)){
         if( mp_msg_test(MSGT_DECVIDEO,MSGL_V) )  mp_msg(MSGT_DECVIDEO,MSGL_V,"NONE :(\n");
         mp_msg(MSGT_DECVIDEO,MSGL_ERR,MSGTR_MpegNoSequHdr);
@@ -523,6 +534,11 @@ int video_read_frame(sh_video_t* sh_video,float* frame_time_ptr,unsigned char** 
             telecine=1;
         }
   } else if(video_codec == VIDEO_MPEG4){
+	    // NARFLEX: I moved this pts being set back to here since that's where it was in our build and
+	    // if it's moved above to where the SVN version has it then we can lose A/V sync when seeking w/ the placeshifter
+	    // in transcode mode
+		pts=d_video->pts;
+
         while(videobuf_len<VIDEOBUFFER_SIZE-MAX_VIDEO_PACKET_SIZE){
           int i=sync_video_packet(d_video);
           if(!i) return -1;
@@ -532,6 +548,11 @@ int video_read_frame(sh_video_t* sh_video,float* frame_time_ptr,unsigned char** 
         *start=videobuffer; in_size=videobuf_len;
         videobuf_len=0;
   } else if(video_codec == VIDEO_H264){
+	    // NARFLEX: I moved this pts being set back to here since that's where it was in our build and
+	    // if it's moved above to where the SVN version has it then we can lose A/V sync when seeking w/ the placeshifter
+	    // in transcode mode
+		pts=d_video->pts;
+
         int in_picture = 0;
         while(videobuf_len<VIDEOBUFFER_SIZE-MAX_VIDEO_PACKET_SIZE){
           int i=sync_video_packet(d_video);

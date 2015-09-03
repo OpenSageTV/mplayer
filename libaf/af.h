@@ -115,6 +115,7 @@ typedef struct af_stream
   af_data_t output;
   // Configuration for this stream
   af_cfg_t cfg;
+  int *chan_map;
 }af_stream_t;
 
 /*********************************************
@@ -316,6 +317,16 @@ void af_help(void);
  * Currently only sets bps based on format
  */
 void af_fix_parameters(af_data_t *data);
+
+/**
+ * \brief set up channel remapping
+ * \param number of output channels
+ * \param string of from-to routes
+ * \return int array of routes
+ *
+ * Makes an int array from a string of provided routes.
+ */
+int *af_set_channel_map(int channels, char *routes);
 
 /** Memory reallocation macro: if a local buffer is used (i.e. if the
    filter doesn't operate on the incoming buffer this macro must be
