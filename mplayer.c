@@ -2578,13 +2578,12 @@ static void pause_loop(void)
     if (mpctx->audio_out && mpctx->sh_audio)
         mpctx->audio_out->pause();  // pause audio, keep data if possible
 
-    while ((cmd = mp_input_get_cmd(20, 1, 1)) == NULL || cmd->pausing == 4) {
-        if (cmd) {
-            cmd = mp_input_get_cmd(0, 1, 0);
-            run_command(mpctx, cmd);
-            mp_cmd_free(cmd);
-            continue;
-        }
+	  // Also process volume/mute commands here (we don't want to have it step frames in that case)
+	  while (1)
+	  {
+		  cmd = mp_input_get_cmd(20,1,1);
+		  if (cmd == NULL)
+		  {
         if (mpctx->sh_video && mpctx->video_out && vo_config_count)
             mpctx->video_out->check_events();
 #ifdef CONFIG_GUI
@@ -2616,8 +2615,9 @@ static void pause_loop(void)
         if (mpctx->sh_video)
             handle_udp_master(mpctx->sh_video->pts);
         usec_sleep(20000);
-
-	if (cmd!=NULL) {
+    }
+ 		 else
+ 		 {
  			 int usedCmd = 1;
  printf("cmdid=%d\n", cmd->id);
  			 switch (cmd->id)
@@ -2726,7 +2726,7 @@ static void pause_loop(void)
 				  cmd = mp_input_get_cmd(0,1,0);
 				  mp_cmd_free(cmd);
 			 }
-			 else
+			 else if (cmd->pausing != 4)
 				 break;
 	}
 
