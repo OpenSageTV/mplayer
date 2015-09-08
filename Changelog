@@ -55,8 +55,23 @@ MPlayer
     * New GUI message: evSetRotation
     * GUI now officially needs GTK+ and GLib versions 2 (it hadn't compiled
       with versions 1 for quite some time)
+    * Support for audio and video bin/cue image playback
+    * Support for Audio CD / (Super) Video CD / DVD image and DVD copy playback
+      through the respective scheme (cd://, vcd://, dvd://)
+    * Support for arbitrary non-binary data file cue sheets (i.e. cue sheets
+      describing playlists for data files containing multiple titles)
 
-  1.1: "We gave up on 1.0"
+
+  1.1.1: May 5, 2013
+
+    Security:
+    * disable unsafe playlist parsing
+    * security fixes in asx parser
+    Other:
+    * FFmpeg updated to 0.11
+
+
+  1.1: "We gave up on 1.0" June 10, 2012
 
     Decoders:
     * FFmpeg AAC decoder is now preferred over libfaad2 and the internal
@@ -92,9 +107,10 @@ MPlayer
     MEncoder:
     * -force-key-frames option to set explicit seek points.
 
+
 MPlayer (1.0)
 
-  rc4: "Yes We Can"
+  rc4: "Yes We Can" January 30, 2011
 
     GUI: Changes towards removing the GUI
     * The GUI will no longer display any error or warning messages.
